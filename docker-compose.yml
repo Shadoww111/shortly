@@ -1,0 +1,36 @@
+version: "3.8"
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: shortly
+      POSTGRES_USER: shortly
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  api:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      BASE_URL: http://localhost:8080
+      DATABASE_URL: postgres://shortly:password@db:5432/shortly?sslmode=disable
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: change-this
+    depends_on:
+      - db
+      - redis
+
+volumes:
+  pg_data:
